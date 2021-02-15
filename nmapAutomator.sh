@@ -108,20 +108,20 @@ header() {
 }
 
 assignPorts() {
-        if [ -f nmap/Quick_${HOST}.nmap ]; then
-                basicPorts=$(cat nmap/Quick_${HOST}.nmap | grep open | cut -d " " -f 1 | cut -d "/" -f 1 | tr "\n" "," | cut -c3- | head -c-2)
+        if [ -f nmap/Quick_Ports_${HOST}.nmap ]; then
+                basicPorts=$(cat nmap/Quick_Ports_${HOST}.nmap | grep open | cut -d " " -f 1 | cut -d "/" -f 1 | tr "\n" "," | cut -c3- | head -c-2)
         fi
 
-        if [ -f nmap/Full_${HOST}.nmap ]; then
-                if [ -f nmap/Quick_${HOST}.nmap ]; then
-                        allPorts=$(cat nmap/Quick_"${HOST}".nmap nmap/Full_"${HOST}".nmap | grep open | cut -d " " -f 1 | cut -d "/" -f 1 | tr "\n" "," | cut -c3- | head -c-1)
+        if [ -f nmap/Full_Ports_${HOST}.nmap ]; then
+                if [ -f nmap/Quick_Ports_${HOST}.nmap ]; then
+                        allPorts=$(cat nmap/Quick_Ports_"${HOST}".nmap nmap/Full_Ports_"${HOST}".nmap | grep open | cut -d " " -f 1 | cut -d "/" -f 1 | tr "\n" "," | cut -c3- | head -c-1)
                 else
-                        allPorts=$(cat nmap/Full_"${HOST}".nmap | grep open | cut -d " " -f 1 | cut -d "/" -f 1 | tr "\n" "," | head -c-1)
+                        allPorts=$(cat nmap/Full_Ports_"${HOST}".nmap | grep open | cut -d " " -f 1 | cut -d "/" -f 1 | tr "\n" "," | head -c-1)
                 fi
         fi
 
-        if [ -f nmap/UDP_"${HOST}".nmap ]; then
-                udpPorts=$(cat nmap/UDP_"${HOST}".nmap | grep -w "open " | cut -d " " -f 1 | cut -d "/" -f 1 | tr "\n" "," | cut -c3- | head -c-2)
+        if [ -f nmap/UDP_Ports_"${HOST}".nmap ]; then
+                udpPorts=$(cat nmap/UDP_Ports_"${HOST}".nmap | grep -w "open " | cut -d " " -f 1 | cut -d "/" -f 1 | tr "\n" "," | cut -c3- | head -c-2)
                 if [[ "$udpPorts" == "Al" ]]; then
                         udpPorts=""
                 fi
@@ -177,7 +177,7 @@ quickScan() {
         echo -e "${GREEN}---------------------Starting Nmap Quick Scan---------------------"
         echo -e "${NC}"
 
-        $nmapType -T4 --max-retries 1 --max-scan-delay 20 --defeat-rst-ratelimit --open -oN nmap/Quick_"${HOST}".nmap "${HOST}" "${DNSSTRING}"
+        $nmapType -T4 --max-retries 1 --max-scan-delay 20 --defeat-rst-ratelimit --open -oN nmap/Quick_Ports_"${HOST}".nmap "${HOST}" "${DNSSTRING}"
         assignPorts "${HOST}"
 
         echo -e ""
@@ -215,7 +215,7 @@ UDPScan() {
         echo -e "${GREEN}----------------------Starting Nmap UDP Scan----------------------"
         echo -e "${NC}"
 
-        $nmapType -sU --max-retries 1 --open -oN nmap/UDP_"${HOST}".nmap "${HOST}" "${DNSSTRING}"
+        $nmapType -sU --max-retries 1 --open -oN nmap/UDP_Ports_"${HOST}".nmap "${HOST}" "${DNSSTRING}"
         assignPorts "${HOST}"
 
         if [ ! -z $(echo "${udpPorts}") ]; then
@@ -239,7 +239,7 @@ fullScan() {
         echo -e "${GREEN}---------------------Starting Nmap Full Scan----------------------"
         echo -e "${NC}"
 
-        $nmapType -p- --max-retries 1 --max-rate 500 --max-scan-delay 20 -T4 -v -oN nmap/Full_"${HOST}".nmap "${HOST}" "${DNSSTRING}"
+        $nmapType -p- --max-retries 1 --max-rate 500 --max-scan-delay 20 -T4 -v -oN nmap/Full_Ports_"${HOST}".nmap "${HOST}" "${DNSSTRING}"
         assignPorts "${HOST}"
 
         if [ -z $(echo "${basicPorts}") ]; then
@@ -357,18 +357,18 @@ reconRecommend() {
         oldIFS=$IFS
         IFS=$'\n'
 
-        if [ -f nmap/Full_"${HOST}".nmap ] && [ -f nmap/Basic_"${HOST}".nmap ]; then
+        if [ -f nmap/Full_Ports_"${HOST}".nmap ] && [ -f nmap/Basic"${HOST}".nmap ]; then
                 ports=$(echo "${allPorts}")
-                file=$(cat nmap/Basic_"${HOST}".nmap nmap/Full_"${HOST}".nmap | grep -w "open")
-        elif [ -f nmap/Full_"${HOST}".nmap ]; then
+                file=$(cat nmap/Basic_"${HOST}".nmap nmap/Full_Ports_"${HOST}".nmap | grep -w "open")
+        elif [ -f nmap/Full_Ports_"${HOST}".nmap ]; then
                 ports=$(echo "${allPorts}")
-                file=$(cat nmap/Quick_"${HOST}".nmap nmap/Full_"${HOST}".nmap | grep -w "open")
+                file=$(cat nmap/Quick_Ports_"${HOST}".nmap nmap/Full_Ports_"${HOST}".nmap | grep -w "open")
         elif [ -f nmap/Basic_"${HOST}".nmap ]; then
                 ports=$(echo "${basicPorts}")
                 file=$(cat nmap/Basic_"${HOST}".nmap | grep -w "open")
         else
                 ports=$(echo "${basicPorts}")
-                file=$(cat nmap/Quick_"${HOST}".nmap | grep -w "open")
+                file=$(cat nmap/Quick_Ports_"${HOST}".nmap | grep -w "open")
 
         fi
 
